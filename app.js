@@ -2,7 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
 require('dotenv').config();
-const {userSignup} = require('./router');
+const {userSignup, userLogin} = require('./router');
 
 const app = express();
 const port = process.env.PORT || 7000;
@@ -12,6 +12,7 @@ app.use(cors());
 
 //all post requests here
 app.post('/signup', userSignup);
+app.post('/login', userLogin);
 
 //all get requests here
 

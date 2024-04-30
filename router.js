@@ -120,6 +120,25 @@ const userSignup = async (req, res) => {
   }
 };
 
+const userLogin = async (req, res) => {
+  const {email, password} = req.body;
+
+  const user = Client.findOne({email});
+
+  if(user == null || user == undefined) {
+    res.json({message:"user not found, please signup", key:0});
+  }
+
+  else if(user.password == password){
+    res.json({message:"Login successful", key:1});
+  }
+
+  else {
+    res.json({message:"wrong password, try again", key:0});
+  }
+}
+
 module.exports = {
   userSignup,
+  userLogin,
 };
