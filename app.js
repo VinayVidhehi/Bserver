@@ -2,7 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
 require('dotenv').config();
-const {userSignup, userLogin, userForgetPassword, restaurantUpload, restaurantFoodUpload} = require('./router');
+const {userSignup, userLogin, userForgetPassword, restaurantUpload, restaurantFoodUpload, fetchFoods} = require('./router');
 
 const app = express();
 const port = process.env.PORT || 7000;
@@ -18,6 +18,7 @@ app.post('/restaurant-upload', restaurantUpload);
 app.post('/restaurant-food-upload', restaurantFoodUpload);
 
 //all get requests here
+app.get('/fetch-foods', fetchFoods);
 
 app.listen(port, () => {
   console.log(`listening to port at ${port}`);

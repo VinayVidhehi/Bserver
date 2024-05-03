@@ -7,6 +7,11 @@ const restaurantSchema = new mongoose.Schema({
     required: true,
     unique: true // Ensure email is unique
   },
+  restaurantId:{
+    type:String,
+    required:true,
+    unique:true,
+  },
   name: {
     type: String,
     required: true

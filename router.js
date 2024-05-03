@@ -189,14 +189,31 @@ const restaurantFoodUpload = async (req, res) => {
 
 const restaurantUpload = async (req, res) => {
   try {
-    const restaurantData = req.body; // Assuming the request body contains restaurant information
-    const newRestaurant = new Restaurant(restaurantData);
-    await newRestaurant.save(); // Saving the new restaurant information to the database
+    const restaurantData = req.body.restaurants; // Assuming the request body contains restaurant information or an array of restaurant information
+    if (Array.isArray(restaurantData)) {
+      // If the request body contains an array of restaurant information
+      await Restaurant.insertMany(restaurantData); // Inserting multiple restaurants to the database
+    } else {
+      // If the request body contains single restaurant information
+      const newRestaurant = new Restaurant(restaurantData);
+      await newRestaurant.save(); // Saving the new restaurant information to the database
+    }
     res.json({ key: 1, message: 'Restaurant information stored successfully' });
   } catch (error) {
     res.json({ key: 0, message: 'Error storing restaurant information' });
   }
 };
+
+const fetchFoods = async (req, res) => {
+  try {
+    const foods = await Food.find();
+    res.json({ key: 1, message: "Food fetched successfully", foods });
+  } catch (error) {
+    res.json({ key: 0, message: "Error fetching food items" });
+  }
+};
+
+
 
 module.exports = {
   userSignup,
@@ -204,4 +221,5 @@ module.exports = {
   userForgetPassword,
   restaurantFoodUpload,
   restaurantUpload,
+  fetchFoods,
 };
