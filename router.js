@@ -1,6 +1,8 @@
 const nodemailer = require("nodemailer");
 const mongoose = require("mongoose");
+const Restaurant = require('./models/restaurantSchema');
 const bcrypt = require("bcryptjs");
+const Food = require('./models/foodSchema');
 const Client = require("./models/clientSchema");
 require("dotenv").config();
 const saltRounds = 10;
@@ -123,13 +125,15 @@ const userSignup = async (req, res) => {
 const userLogin = async (req, res) => {
   const {email, password} = req.body;
 
-  const user = Client.findOne({email});
+  const user = await Client.findOne({email});
+  console.log("user is ", email, user);
 
   if(user == null || user == undefined) {
     res.json({message:"user not found, please signup", key:0});
   }
 
   else if(user.password == password){
+    console.log("at login succesful")
     res.json({message:"Login successful", key:1});
   }
 
@@ -138,7 +142,66 @@ const userLogin = async (req, res) => {
   }
 }
 
+const userForgetPassword = async (req, res) => {
+  const { email, newPassword } = req.body;
+
+  try {
+    // Find the user by email
+    const userFound = await Client.findOne({ email });
+
+    // If user not found, return error message
+    if (!userFound) {
+      return res.json({ message: "User not found. Please sign up first.", key:0 });
+    }
+
+    // Update the user's password
+    await Client.findOneAndUpdate({ email }, { password: newPassword });
+
+    // Return success message
+    return res.json({ message: "Password updated successfully.", key:1 });
+  } catch (error) {
+    // Handle errors
+    console.error("Error updating password:", error);
+    return res.status(500).json({ message: "Internal server error", key:0 });
+  }
+};
+
+// Function to handle upload of single or multiple food items
+const restaurantFoodUpload = async (req, res) => {
+  try {
+    const foods = req.body.foods; // Assuming the request body contains an array of food items
+    const isMultiple = Array.isArray(foods); // Check if multiple food items are provided
+    
+    if (isMultiple) {
+      // Inserting multiple food items into the database
+      const result = await Food.insertMany(foods);
+      res.json({ key: 1, message: `${result.length} food items stored successfully` });
+    } else {
+      // Creating a new food document for a single food item
+      const newFood = new Food(foods);
+      await newFood.save(); // Saving the new food item to the database
+      res.json({ key: 1, message: 'Food item stored successfully' });
+    }
+  } catch (error) {
+    res.json({ key: 0, message: 'Error storing food items' });
+  }
+};
+
+const restaurantUpload = async (req, res) => {
+  try {
+    const restaurantData = req.body; // Assuming the request body contains restaurant information
+    const newRestaurant = new Restaurant(restaurantData);
+    await newRestaurant.save(); // Saving the new restaurant information to the database
+    res.json({ key: 1, message: 'Restaurant information stored successfully' });
+  } catch (error) {
+    res.json({ key: 0, message: 'Error storing restaurant information' });
+  }
+};
+
 module.exports = {
   userSignup,
   userLogin,
+  userForgetPassword,
+  restaurantFoodUpload,
+  restaurantUpload,
 };
