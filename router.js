@@ -237,7 +237,7 @@ const addItemsToCart =  async (req, res) => {
 
     // If food item doesn't exist, return an error
     if (!foodItem) {
-      return res.status(404).json({ message: 'Food item not found' });
+      return res.status(404).json({ message: 'Food item not found', key:0 });
     }
 
     // Add the food item to the cart
@@ -247,11 +247,11 @@ const addItemsToCart =  async (req, res) => {
     await cart.save();
 
     // Send success response
-    res.status(200).json({ message: 'Food item added to cart successfully' });
+    res.status(200).json({ message: 'Food item added to cart successfully', key:1 });
   } catch (error) {
     // Handle errors
     console.error('Error adding item to cart:', error);
-    res.status(500).json({ message: 'An error occurred while adding item to cart' });
+    res.status(500).json({ message: 'An error occurred while adding item to cart',key:0 });
   }
 }
 
