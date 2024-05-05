@@ -5,6 +5,7 @@ const bcrypt = require("bcryptjs");
 const Food = require('./models/foodSchema');
 const Cart = require("./models/cartSchema");
 const Client = require("./models/clientSchema");
+const Order = require("./models/orderSchema");
 require("dotenv").config();
 const saltRounds = 10;
 
@@ -302,9 +303,45 @@ const fetchItemsToCart = async (req, res) => {
   }
 };
 
-const fetchOrders = async (req, res) => {
+const orderFoodItem = async (req, res) => {
+  try {
+    const { email } = req.body;
 
-}
+    // Retrieve cart items associated with the user's email
+    const cartItems = await Cart.findOne({ email });
+
+    // Create a new order instance
+    const order = new Order({
+      userEmail: email,
+      cart: cartItems.items // Assuming cart items are stored in the 'items' field of the Cart model
+    });
+
+    // Save the new order to the database
+    await order.save();
+
+    res.status(201).json({ message: 'Order placed successfully' });
+  } catch (error) {
+    console.error('Error placing order:', error);
+    res.status(500).json({ message: 'Failed to place order' });
+  }
+};
+
+const fetchOrders = async (req, res) => {
+  try {
+    const { email } = req.query;
+
+    // Find orders associated with the user's email and sort them by creation date in descending order
+    const userOrders = await Order.find({ userEmail: email }).sort({ createdAt: -1 });
+
+    res.status(200).json({message:"orders fetched successfully", userOrders});
+  } catch (error) {
+    console.error('Error fetching orders:', error);
+    res.status(500).json({ message: 'Failed to fetch orders' });
+  }
+};
+
+module.exports = { fetchOrders };
+
 
 const updateCartItems = async (req, res) => {
   try {
@@ -350,9 +387,6 @@ const updateCartItems = async (req, res) => {
   }
 };
 
-
-
-
 module.exports = {
   userSignup,
   userLogin,
@@ -363,4 +397,5 @@ module.exports = {
   addItemsToCart,
   fetchItemsToCart,
   updateCartItems,
+  orderFoodItem,
 };
