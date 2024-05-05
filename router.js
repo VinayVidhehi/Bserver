@@ -273,8 +273,10 @@ const addItemsToCart = async (req, res) => {
 
 const fetchItemsToCart = async (req, res) => {
   try {
+    console.log("am i here at fetch cart items?");
     // Extract email from request query
     const { email } = req.query;
+    console.log("email is ",email);
 
     // Find the cart associated with the user's email and populate the foodItem field
     const cart = await Cart.findOne({ email }).populate('items.foodItem');
@@ -306,48 +308,37 @@ const fetchOrders = async (req, res) => {
 
 const updateCartItems = async (req, res) => {
   try {
-    // Extract email, deleteKey, foodId, and quantity from request body
-    const { email, deleteKey, foodId, quantity } = req.body;
+    const { email, cart } = req.body;
 
-    // Find the cart associated with the user's email
-    let cart = await Cart.findOne({ email });
+    // Find the existing cart associated with the user's email
+    let existingCart = await Cart.findOne({ email });
 
-    // If cart doesn't exist, return an error
-    if (!cart) {
-      return res.status(404).json({ message: 'Cart not found', key: 0 });
+    // If no existing cart found, return error
+    if (!existingCart) {
+      return res.status(404).json({ message: 'Cart not found for the user', key: 0 });
     }
 
-    // Find the index of the item in the cart items array
-    const itemIndex = cart.items.findIndex(
-      (item) => item.foodItem.toString() === foodId.toString()
-    );
-
-    // If deleteKey is true, remove the item from the cart
-    if (deleteKey) {
-      if (itemIndex !== -1) {
-        cart.items.splice(itemIndex, 1);
-      }
-    } else {
-      // If quantity is provided, update the quantity of the item
-      if (quantity) {
-        if (itemIndex !== -1) {
-          cart.items[itemIndex].quantity = quantity;
-        }
+    // Iterate through the items in the new cart
+    for (const newItem of cart) {
+      // Check if the item already exists in the existing cart
+      const existingItem = existingCart.items.find(item => item.foodItem.toString() === newItem.foodItem.toString());
+      
+      if (existingItem) {
+        // If the item exists, update its quantity
+        existingItem.quantity += newItem.quantity;
+      } else {
+        // If the item does not exist, push it to the existing cart
+        existingCart.items.push(newItem);
       }
     }
 
-    // Save the updated cart document
-    await cart.save();
+    // Save the updated cart
+    await existingCart.save();
 
-    // Send success response
-    res.status(200).json({ message: 'Cart items updated successfully', key: 1 });
+    return res.status(200).json({ message: 'Cart items updated successfully', key: 1 });
   } catch (error) {
-    // Handle errors
     console.error('Error updating cart items:', error);
-    res.status(500).json({
-      message: 'An error occurred while updating cart items',
-      key: 0,
-    });
+    return res.status(500).json({ message: 'An error occurred while updating cart items', key: 0 });
   }
 };
 
