@@ -2,7 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
 require('dotenv').config();
-const {userSignup, userLogin, userForgetPassword, restaurantUpload, restaurantFoodUpload, fetchFoods, addItemsToCart, fetchItemsToCart} = require('./router');
+const {userSignup, userLogin, userForgetPassword, restaurantUpload, restaurantFoodUpload, fetchFoods, addItemsToCart, fetchItemsToCart, updateCartItems} = require('./router');
 
 const app = express();
 const port = process.env.PORT || 7000;
@@ -17,6 +17,7 @@ app.post('/forget-password', userForgetPassword);
 app.post('/restaurant-upload', restaurantUpload);
 app.post('/restaurant-food-upload', restaurantFoodUpload);
 app.post('/add-to-cart', addItemsToCart);
+app.post('/update-cart', updateCartItems);
 
 //all get requests here
 app.get('/fetch-foods', fetchFoods);

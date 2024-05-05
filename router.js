@@ -214,17 +214,14 @@ const fetchFoods = async (req, res) => {
   }
 };
 
-const addItemsToCart =  async (req, res) => {
-  // const { email, food } = req.body;
-  // console.log(food);
-  // res.json({message:"successfull"});
-
+const addItemsToCart = async (req, res) => {
   try {
     // Extract email and food item ID from request body
     const { email, food } = req.body;
 
-    const foodId = food._id
-    //Find the cart associated with the user's email
+    const foodId = food._id;
+
+    // Find the cart associated with the user's email
     let cart = await Cart.findOne({ email });
 
     // If cart doesn't exist, create a new one
@@ -232,12 +229,25 @@ const addItemsToCart =  async (req, res) => {
       cart = new Cart({ email, items: [] });
     }
 
+    // Check if the food item already exists in the cart
+    const existingItemIndex = cart.items.findIndex(
+      (item) => item.foodItem.toString() === foodId.toString()
+    );
+
+    // If the item already exists in the cart, send a message and return
+    if (existingItemIndex !== -1) {
+      return res.status(200).json({
+        message: 'Food item already exists in the cart',
+        key: 1,
+      });
+    }
+
     // Find the food item by its ID
     const foodItem = await Food.findById(foodId);
 
     // If food item doesn't exist, return an error
     if (!foodItem) {
-      return res.status(404).json({ message: 'Food item not found', key:0 });
+      return res.status(404).json({ message: 'Food item not found', key: 0 });
     }
 
     // Add the food item to the cart
@@ -247,13 +257,19 @@ const addItemsToCart =  async (req, res) => {
     await cart.save();
 
     // Send success response
-    res.status(200).json({ message: 'Food item added to cart successfully', key:1 });
+    res.status(200).json({
+      message: 'Food item added to cart successfully',
+      key: 1,
+    });
   } catch (error) {
     // Handle errors
     console.error('Error adding item to cart:', error);
-    res.status(500).json({ message: 'An error occurred while adding item to cart',key:0 });
+    res.status(500).json({
+      message: 'An error occurred while adding item to cart',
+      key: 0,
+    });
   }
-}
+};
 
 const fetchItemsToCart = async (req, res) => {
   try {
@@ -284,6 +300,57 @@ const fetchItemsToCart = async (req, res) => {
   }
 };
 
+const fetchOrders = async (req, res) => {
+
+}
+
+const updateCartItems = async (req, res) => {
+  try {
+    // Extract email, deleteKey, foodId, and quantity from request body
+    const { email, deleteKey, foodId, quantity } = req.body;
+
+    // Find the cart associated with the user's email
+    let cart = await Cart.findOne({ email });
+
+    // If cart doesn't exist, return an error
+    if (!cart) {
+      return res.status(404).json({ message: 'Cart not found', key: 0 });
+    }
+
+    // Find the index of the item in the cart items array
+    const itemIndex = cart.items.findIndex(
+      (item) => item.foodItem.toString() === foodId.toString()
+    );
+
+    // If deleteKey is true, remove the item from the cart
+    if (deleteKey) {
+      if (itemIndex !== -1) {
+        cart.items.splice(itemIndex, 1);
+      }
+    } else {
+      // If quantity is provided, update the quantity of the item
+      if (quantity) {
+        if (itemIndex !== -1) {
+          cart.items[itemIndex].quantity = quantity;
+        }
+      }
+    }
+
+    // Save the updated cart document
+    await cart.save();
+
+    // Send success response
+    res.status(200).json({ message: 'Cart items updated successfully', key: 1 });
+  } catch (error) {
+    // Handle errors
+    console.error('Error updating cart items:', error);
+    res.status(500).json({
+      message: 'An error occurred while updating cart items',
+      key: 0,
+    });
+  }
+};
+
 
 
 module.exports = {
@@ -295,4 +362,5 @@ module.exports = {
   fetchFoods,
   addItemsToCart,
   fetchItemsToCart,
+  updateCartItems,
 };
