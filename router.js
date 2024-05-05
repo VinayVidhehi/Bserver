@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const Restaurant = require('./models/restaurantSchema');
 const bcrypt = require("bcryptjs");
 const Food = require('./models/foodSchema');
+const Cart = require("./models/cartSchema");
 const Client = require("./models/clientSchema");
 require("dotenv").config();
 const saltRounds = 10;
@@ -213,6 +214,76 @@ const fetchFoods = async (req, res) => {
   }
 };
 
+const addItemsToCart =  async (req, res) => {
+  // const { email, food } = req.body;
+  // console.log(food);
+  // res.json({message:"successfull"});
+
+  try {
+    // Extract email and food item ID from request body
+    const { email, food } = req.body;
+
+    const foodId = food._id
+    //Find the cart associated with the user's email
+    let cart = await Cart.findOne({ email });
+
+    // If cart doesn't exist, create a new one
+    if (!cart) {
+      cart = new Cart({ email, items: [] });
+    }
+
+    // Find the food item by its ID
+    const foodItem = await Food.findById(foodId);
+
+    // If food item doesn't exist, return an error
+    if (!foodItem) {
+      return res.status(404).json({ message: 'Food item not found' });
+    }
+
+    // Add the food item to the cart
+    cart.items.push({ foodItem: foodItem._id });
+
+    // Save the updated cart document
+    await cart.save();
+
+    // Send success response
+    res.status(200).json({ message: 'Food item added to cart successfully' });
+  } catch (error) {
+    // Handle errors
+    console.error('Error adding item to cart:', error);
+    res.status(500).json({ message: 'An error occurred while adding item to cart' });
+  }
+}
+
+const fetchItemsToCart = async (req, res) => {
+  try {
+    // Extract email from request query
+    const { email } = req.query;
+
+    // Find the cart associated with the user's email and populate the foodItem field
+    const cart = await Cart.findOne({ email }).populate('items.foodItem');
+
+    // If cart doesn't exist, return an error
+    if (!cart) {
+      return res.status(404).json({ message: 'Cart not found' });
+    }
+
+    // Extract items from the cart
+    const items = cart.items.map(item => ({
+      id: item._id,
+      foodItem: item.foodItem,
+      quantity: item.quantity
+    }));
+
+    // Send the items in the cart as response
+    res.status(200).json({ items });
+  } catch (error) {
+    // Handle errors
+    console.error('Error fetching items from cart:', error);
+    res.status(500).json({ message: 'An error occurred while fetching items from cart' });
+  }
+};
+
 
 
 module.exports = {
@@ -222,4 +293,6 @@ module.exports = {
   restaurantFoodUpload,
   restaurantUpload,
   fetchFoods,
+  addItemsToCart,
+  fetchItemsToCart,
 };
