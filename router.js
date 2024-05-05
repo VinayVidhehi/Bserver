@@ -318,19 +318,27 @@ const updateCartItems = async (req, res) => {
       return res.status(404).json({ message: 'Cart not found for the user', key: 0 });
     }
 
-    // Iterate through the items in the new cart
-    for (const newItem of cart) {
-      // Check if the item already exists in the existing cart
-      const existingItem = existingCart.items.find(item => item.foodItem.toString() === newItem.foodItem.toString());
-      
-      if (existingItem) {
-        // If the item exists, update its quantity
-        existingItem.quantity += newItem.quantity;
+    // Iterate through the items in the existing cart
+    existingCart.items.forEach(existingItem => {
+      // Find the corresponding item in the new cart, if any
+      const newItem = cart.find(newItem => newItem.foodItem.toString() === existingItem.foodItem.toString());
+
+      if (newItem) {
+        // If the item exists in the new cart, update its quantity
+        existingItem.quantity = newItem.quantity;
       } else {
-        // If the item does not exist, push it to the existing cart
+        // If the item does not exist in the new cart, remove it from the existing cart
+        existingCart.items = existingCart.items.filter(item => item.foodItem.toString() !== existingItem.foodItem.toString());
+      }
+    });
+
+    // Add any new items from the new cart to the existing cart
+    cart.forEach(newItem => {
+      const existingItem = existingCart.items.find(item => item.foodItem.toString() === newItem.foodItem.toString());
+      if (!existingItem) {
         existingCart.items.push(newItem);
       }
-    }
+    });
 
     // Save the updated cart
     await existingCart.save();
@@ -341,6 +349,7 @@ const updateCartItems = async (req, res) => {
     return res.status(500).json({ message: 'An error occurred while updating cart items', key: 0 });
   }
 };
+
 
 
 
