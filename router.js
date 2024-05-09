@@ -128,9 +128,10 @@ const userLogin = async (req, res) => {
   const {email, password} = req.body;
 
   const user = await Client.findOne({email});
-  console.log("user is ", email, user);
+  console.log("user is", email, password);
 
   if(user == null || user == undefined) {
+    console.log("not found babe");
     res.json({message:"user not found, please signup", key:0});
   }
 
@@ -340,9 +341,6 @@ const fetchOrders = async (req, res) => {
   }
 };
 
-module.exports = { fetchOrders };
-
-
 const updateCartItems = async (req, res) => {
   try {
     const { email, cart } = req.body;
@@ -398,4 +396,5 @@ module.exports = {
   fetchItemsToCart,
   updateCartItems,
   orderFoodItem,
+  fetchOrders
 };
