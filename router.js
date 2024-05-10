@@ -332,7 +332,7 @@ const fetchOrders = async (req, res) => {
     const { email } = req.query;
 
     // Find orders associated with the user's email and sort them by creation date in descending order
-    const userOrders = await Order.find({ userEmail: email }).sort({ createdAt: -1 });
+    const userOrders = await Order.find({ userEmail: email }).populate('cart.foodItem').sort({ createdAt: -1 });
 
     res.status(200).json({message:"orders fetched successfully", userOrders});
   } catch (error) {
