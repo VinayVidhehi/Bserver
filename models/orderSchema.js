@@ -19,6 +19,16 @@ const orderSchema = new mongoose.Schema({
       }
     }],
     required: true
+  },
+  status:{
+    type:String,
+    required:true,
+    default:'preparing',
+  },
+  delivered:{
+    type: Boolean,
+    required:true,
+    default: false,
   }
 });
 
